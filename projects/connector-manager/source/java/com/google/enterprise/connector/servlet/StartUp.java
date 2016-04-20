@@ -18,6 +18,7 @@ import com.google.enterprise.connector.instantiator.EncryptedPropertyPlaceholder
 import com.google.enterprise.connector.logging.NDC;
 import com.google.enterprise.connector.manager.Context;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.logging.Logger;
@@ -113,7 +114,15 @@ public class StartUp extends HttpServlet {
     ac.refresh();
 
     Context context = Context.getInstance();
-    context.setServletContext(ac, servletContext.getRealPath("/WEB-INF"));
+    String basePathConfigured = System.getProperty("connectorBasePath");
+    String basePath = servletContext.getRealPath("/WEB-INF");
+    if (basePathConfigured != null) {
+      File serverBasePath = new File(servletContext.getRealPath("/"));
+      String appName = serverBasePath.getName();
+      basePath = basePathConfigured + File.separator + appName;
+      LOGGER.info("Using custom commonDirPath: " + basePath);
+    }
+    context.setServletContext(ac, basePath);
     context.start();
   }
 }
