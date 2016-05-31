@@ -235,9 +235,10 @@ public class JdbcStore implements ConnectorScheduleStore,
    * @return String value of the field, or {@code null} if not stored
    */
   private String getField(StoreContext context, String fieldName) {
+    Connection connection = null;
     try {
       init();
-      Connection connection = connectionPool.getConnection();
+      connection = connectionPool.getConnection();
       String query = "SELECT " + PROPERTY_VALUE + " FROM " + TABLE_NAME
           + " WHERE ( " + CONNECTOR_NAME + " = '" + context.getConnectorName()
           + "' AND " + PROPERTY_NAME + " = '" + fieldName + "' )";
@@ -254,6 +255,10 @@ public class JdbcStore implements ConnectorScheduleStore,
     } catch (SQLException e) {
       LOGGER.log(Level.WARNING, "Failed to retrieve " + fieldName
           + " for connector " + context.getConnectorName(), e);
+    } finally {
+      if (connection != null) {
+        connectionPool.releaseConnection(connection);
+      }
     }
     return null;
   }
